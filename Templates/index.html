@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СКАТ-бот | МОКБ им. П. А. Баяндина</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: #eef2f5; margin: 0; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 28px; box-shadow: 0 12px 30px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #0b3b4f 0%, #1a5f7a 100%); color: white; padding: 20px 24px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+        .logo { height: 70px; width: auto; background: white; border-radius: 16px; padding: 5px; object-fit: contain; }
+        .title h1 { margin: 0; font-size: 1.8rem; letter-spacing: -0.5px; }
+        .title p { margin: 5px 0 0; opacity: 0.9; font-size: 0.9rem; }
+        .tabs { display: flex; background: #f0f4f9; border-bottom: 1px solid #cfdfed; }
+        .tab { flex: 1; text-align: center; padding: 14px; cursor: pointer; font-weight: 600; color: #1e4a6e; transition: 0.2s; }
+        .tab.active { background: white; border-bottom: 3px solid #0b3b4f; color: #0b3b4f; }
+        .tab-content { display: none; padding: 28px; }
+        .tab-content.active { display: block; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; color: #0b3b4f; }
+        select, input { width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 20px; background: white; }
+        .checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; max-height: 200px; overflow-y: auto; background: #f9fbfd; padding: 8px; border-radius: 20px; border: 1px solid #e2edf7; }
+        .checkbox-group label { display: flex; align-items: center; gap: 6px; background: white; padding: 4px 12px; border-radius: 30px; border: 1px solid #cbd5e1; cursor: pointer; }
+        button { background: #0b3b4f; color: white; border: none; padding: 12px 28px; border-radius: 40px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px; margin-right: 10px; }
+        button:hover { background: #1f5e7e; }
+        .copy-btn { background: #2c7da0; }
+        .result-card { background: #f8fafc; border-radius: 24px; padding: 20px; margin-top: 24px; border-left: 6px solid #0b3b4f; }
+        .warning { background: #fff3cd; border-left-color: #f7b32b; padding: 10px; margin-top: 12px; border-radius: 12px; }
+        hr { margin: 16px 0; }
+        footer { text-align: center; padding: 16px; font-size: 0.75rem; color: #5b6e8c; background: #f9fbfd; }
+        .scheme-list { list-style: none; padding-left: 0; }
+        .scheme-list li { margin-bottom: 12px; padding: 8px; background: white; border-radius: 16px; border: 1px solid #e2e8f0; }
+        .badge { background: #e2e8f0; border-radius: 50px; padding: 4px 10px; font-size: 0.75rem; display: inline-block; margin-right: 8px; }
+        @media (max-width: 700px) { .header { flex-direction: column; text-align: center; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <img src="/static/logo.png" alt="Логотип МОКБ" class="logo" onerror="this.style.display='none'">
+        <div class="title">
+            <h1>💊 Чат-бот СКАТ</h1>
+            <p>Мурманская областная клиническая больница им. П. А. Баяндина</p>
+            <p style="font-size:0.8rem;">Стратификация, лабораторные маркеры, функция почек — несколько схем терапии</p>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab active" data-tab="empiric">🦠 Эмпирическая терапия</div>
+        <div class="tab" data-tab="targeted">🔬 Целенаправленная (по возбудителю)</div>
+    </div>
+    <!-- Эмпирическая вкладка -->
+    <div id="empiricTab" class="tab-content active">
+        <div class="form-grid">
+            <div class="form-group"><label>📍 Локализация</label>
+                <select id="localization">
+                    <option value="Пневмония">Пневмония</option>
+                    <option value="Интраабдоминальная">Интраабдоминальная инфекция</option>
+                    <option value="ИМВП">Инфекция мочевыводящих путей (ИМВП)</option>
+                    <option value="Сепсис">Сепсис</option>
+                    <option value="Инфекция кожи и мягких тканей">Инфекция кожи и мягких тканей</option>
+                    <option value="Менингит">Менингит</option>
+                    <option value="Эндокардит">Эндокардит</option>
+                    <option value="Остеомиелит">Остеомиелит</option>
+                </select>
+            </div>
+            <div class="form-group"><label>⏱️ Дни в стационаре</label>
+                <select id="hospitalDays"><option value="1">Менее 2 дней</option><option value="5">2–7 дней</option><option value="10">Более 7 дней</option></select>
+            </div>
+            <div class="form-group"><label>🧑 Возраст</label>
+                <select id="age"><option value="30">18–40</option><option value="60" selected>41–70</option><option value="80">>70</option></select>
+            </div>
+            <div class="form-group"><label>⚖️ Вес (кг)</label>
+                <select id="weight"><option value="50">50–59</option><option value="70" selected>60–79</option><option value="90">80–100</option></select>
+            </div>
+            <div class="form-group"><label>🧪 Креатинин (мкмоль/л)</label>
+                <select id="creatinine"><option value="60">Норма (<80)</option><option value="120" selected>80–150</option><option value="250">>150</option></select>
+            </div>
+            <div class="form-group"><label>♂️ Пол</label>
+                <select id="sex"><option value="male">Мужской</option><option value="female">Женский</option></select>
+            </div>
+            <div class="form-group"><label>📊 SOFA (баллы)</label>
+                <select id="sofa"><option value="0">0–1</option><option value="3" selected>2–5</option><option value="8">6–11</option><option value="14">≥12</option></select>
+            </div>
+            <div class="form-group"><label>🩸 Лейкоциты (×10⁹/л)</label>
+                <select id="leukocytes"><option value="<4.0"><4.0</option><option value="4.0-10.0" selected>4.0–10.0</option><option value="10.0-15.0">10.0–15.0</option><option value=">15.0">>15.0</option></select>
+            </div>
+            <div class="form-group"><label>🧪 СОЭ (мм/ч)</label>
+                <select id="esr"><option value="<10"><10</option><option value="10-30" selected>10–30</option><option value="30-60">30–60</option><option value=">60">>60</option></select>
+            </div>
+            <div class="form-group"><label>🔬 Прокальцитонин (нг/мл)</label>
+                <select id="pct"><option value="<0.1"><0.1</option><option value="0.1-0.25">0.1–0.25</option><option value="0.25-0.5">0.25–0.5</option><option value=">0.5" selected>>0.5</option></select>
+            </div>
+            <div class="form-group"><label>💊 Аллергия</label>
+                <select id="allergy"><option value="нет">Нет</option><option value="пенициллины">Пенициллины</option><option value="цефалоспорины">Цефалоспорины</option></select>
+            </div>
+        </div>
+        <div class="form-group"><label>⚠️ Факторы риска</label><div id="riskFactorsList" class="checkbox-group"></div></div>
+        <button id="btnEmpiric">📋 Получить рекомендацию</button>
+        <button id="copyEmpiricResult" class="copy-btn" style="display:none;">📋 Копировать результат</button>
+        <div id="resultEmpiric"></div>
+    </div>
+    <!-- Целенаправленная вкладка -->
+    <div id="targetedTab" class="tab-content">
+        <div class="form-group"><label>🦠 Возбудитель</label><select id="pathogen"></select></div>
+        <div class="form-group"><label>💊 Резистентность к препаратам (выберите те, к которым есть устойчивость)</label><div id="resistanceDrugsList" class="checkbox-group"></div></div>
+        <div class="form-group"><label>🧑 Возраст</label><select id="targetAge"><option value="30">18–40</option><option value="60" selected>41–70</option><option value="80">>70</option></select></div>
+        <div class="form-group"><label>⚖️ Вес (кг)</label><select id="targetWeight"><option value="50">50–59</option><option value="70" selected>60–79</option><option value="90">80–100</option></select></div>
+        <div class="form-group"><label>🧪 Креатинин (мкмоль/л)</label><select id="targetCreatinine"><option value="60">Норма (<80)</option><option value="120" selected>80–150</option><option value="250">>150</option></select></div>
+        <div class="form-group"><label>♂️ Пол</label><select id="targetSex"><option value="male">Мужской</option><option value="female">Женский</option></select></div>
+        <div class="form-group"><label>⏱️ Дни в стационаре</label><select id="targetHospitalDays"><option value="1">Менее 2</option><option value="5">2–7</option><option value="10">>7</option></select></div>
+        <div class="form-group"><label>💊 Предыдущие антибиотики</label><input type="text" id="previousAntibiotics" placeholder="например: цефтриаксон 5 дней"></div>
+        <div class="form-group"><label>💊 Аллергия</label><select id="targetAllergy"><option value="нет">Нет</option><option value="пенициллины">Пенициллины</option><option value="цефалоспорины">Цефалоспорины</option></select></div>
+        <button id="btnTargeted">🎯 Подобрать препараты</button>
+        <button id="copyTargetedResult" class="copy-btn" style="display:none;">📋 Копировать результат</button>
+        <div id="resultTargeted"></div>
+    </div>
+    <footer>Рекомендации основаны на локальных данных СКАТ. Всегда консультируйтесь с клиническим фармакологом.</footer>
+</div>
+<script>
+    fetch('/api/risk_factors').then(r=>r.json()).then(factors=>{
+        const container=document.getElementById('riskFactorsList');
+        factors.forEach(f=>{let l=document.createElement('label');l.innerHTML=`<input type="checkbox" value="${f}"> ${f}`;container.appendChild(l);});
+    });
+    fetch('/api/pathogens').then(r=>r.json()).then(pathogens=>{
+        const select=document.getElementById('pathogen');
+        pathogens.forEach(p=>{let opt=document.createElement('option');opt.value=p;opt.textContent=p;select.appendChild(opt);});
+        select.addEventListener('change',updateResistanceList);
+        updateResistanceList();
+    });
+    async function updateResistanceList(){
+        const pathogen=document.getElementById('pathogen').value;
+        if(!pathogen) return;
+        const [allResp, sensResp]=await Promise.all([fetch('/api/all_antibiotics'), fetch(`/api/pathogen_sensitivity?name=${encodeURIComponent(pathogen)}`)]);
+        const allDrugs=await allResp.json();
+        const sensitive=await sensResp.json();
+        const container=document.getElementById('resistanceDrugsList');
+        container.innerHTML='';
+        allDrugs.forEach(drug=>{
+            const label=document.createElement('label');
+            label.innerHTML=`<input type="checkbox" value="${drug}" ${!sensitive.includes(drug)?'checked':''}> ${drug} ${!sensitive.includes(drug)?' (природная устойчивость)':''}`;
+            container.appendChild(label);
+        });
+    }
+    const tabs=document.querySelectorAll('.tab');
+    const contents=document.querySelectorAll('.tab-content');
+    tabs.forEach(tab=>{
+        tab.addEventListener('click',()=>{
+            const target=tab.dataset.tab;
+            tabs.forEach(t=>t.classList.remove('active'));
+            tab.classList.add('active');
+            contents.forEach(c=>c.classList.remove('active'));
+            document.getElementById(`${target}Tab`).classList.add('active');
+        });
+    });
+    let currentEmpiricText="", currentTargetedText="";
+    document.getElementById('btnEmpiric').addEventListener('click',async()=>{
+        const localization=document.getElementById('localization').value;
+        const hospitalDays=parseFloat(document.getElementById('hospitalDays').value);
+        const age=parseInt(document.getElementById('age').value);
+        const weight=parseFloat(document.getElementById('weight').value);
+        const creatinine=parseFloat(document.getElementById('creatinine').value);
+        const sex=document.getElementById('sex').value;
+        const sofa=parseInt(document.getElementById('sofa').value);
+        const leukocytes=document.getElementById('leukocytes').value;
+        const esr=document.getElementById('esr').value;
+        const pct=document.getElementById('pct').value;
+        const allergy=document.getElementById('allergy').value;
+        const riskChecks=document.querySelectorAll('#riskFactorsList input:checked');
+        const riskFactors=Array.from(riskChecks).map(cb=>cb.value);
+        const payload={localization, hospital_days:hospitalDays, risk_factors:riskFactors, age, weight, creatinine, sex, sofa, leukocytes, esr, pct, allergy};
+        try{
+            const resp=await fetch('/api/empiric',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+            const data=await resp.json();
+            if(data.error){document.getElementById('resultEmpiric').innerHTML=`<div class="result-card" style="border-left-color:red;">❌ ${data.error}</div>`;document.getElementById('copyEmpiricResult').style.display='none';return;}
+            let html=`<div class="result-card"><strong>🎯 СТРАТИФИКАЦИЯ:</strong> ${data.stratification}<br><strong>🧪 Клиренс креатинина:</strong> ${data.crcl} мл/мин<br><strong>📊 SOFA:</strong> ${data.sofa_text}<br>`;
+            if(data.lab.length) html+=`<strong>🩸 Лабораторные маркеры:</strong><ul>${data.lab.map(i=>`<li>${i}</li>`).join('')}</ul>`;
+            html+=`<hr><strong>💊 СХЕМЫ ТЕРАПИИ (с дозировками и длительностью):</strong><ul class="scheme-list">`;
+            html+=`<li><strong>1-я линия:</strong> ${data.line1}<br><span class="badge">Дозировка: ${data.line1_dose}</span><br><span class="badge">Длительность: ${data.line1_duration}</span></li>`;
+            html+=`<li><strong>2-я линия:</strong> ${data.line2}<br><span class="badge">Дозировка: ${data.line2_dose}</span><br><span class="badge">Длительность: ${data.line2_duration}</span></li>`;
+            html+=`<li><strong>3-я линия:</strong> ${data.line3}<br><span class="badge">Дозировка: ${data.line3_dose}</span><br><span class="badge">Длительность: ${data.line3_duration}</span></li>`;
+            html+=`<li><strong>⚠️ При аллергии:</strong> ${data.allergy_alt}<br><span class="badge">Дозировка: ${data.allergy_alt_dose}</span><br><span class="badge">Длительность: ${data.allergy_alt_duration}</span></li>`;
+            html+=`<li><strong>🩺 При почечной недостаточности:</strong> ${data.renal_alt}<br><span class="badge">Дозировка: ${data.renal_alt_dose}</span><br><span class="badge">Длительность: ${data.renal_alt_duration}</span></li>`;
+            html+=`</ul><strong>📌 Примечание:</strong> ${data.note}`;
+            if(data.allergy_warning) html+=`<div class="warning">⚠️ ${data.allergy_warning}</div>`;
+            html+=`</div>`;
+            document.getElementById('resultEmpiric').innerHTML=html;
+            currentEmpiricText=`СТРАТИФИКАЦИЯ: ${data.stratification}\nКлиренс креатинина: ${data.crcl} мл/мин\nSOFA: ${data.sofa_text}\nЛабораторные маркеры: ${data.lab.join('; ')}\n\nСХЕМЫ ТЕРАПИИ:\n1-я линия: ${data.line1} (${data.line1_dose}, ${data.line1_duration})\n2-я линия: ${data.line2} (${data.line2_dose}, ${data.line2_duration})\n3-я линия: ${data.line3} (${data.line3_dose}, ${data.line3_duration})\nПри аллергии: ${data.allergy_alt} (${data.allergy_alt_dose}, ${data.allergy_alt_duration})\nПри почечной недостаточности: ${data.renal_alt} (${data.renal_alt_dose}, ${data.renal_alt_duration})\nПримечание: ${data.note}`;
+            document.getElementById('copyEmpiricResult').style.display='inline-block';
+        }catch(e){document.getElementById('resultEmpiric').innerHTML=`<div class="result-card" style="border-left-color:red;">❌ Ошибка соединения</div>`;}
+    });
+    document.getElementById('btnTargeted').addEventListener('click',async()=>{
+        const pathogen=document.getElementById('pathogen').value;
+        const resistanceChecks=document.querySelectorAll('#resistanceDrugsList input:checked');
+        const resistanceDrugs=Array.from(resistanceChecks).map(cb=>cb.value);
+        const age=parseInt(document.getElementById('targetAge').value);
+        const weight=parseFloat(document.getElementById('targetWeight').value);
+        const creatinine=parseFloat(document.getElementById('targetCreatinine').value);
+        const sex=document.getElementById('targetSex').value;
+        const hospitalDays=parseFloat(document.getElementById('targetHospitalDays').value);
+        const previousAntibiotics=document.getElementById('previousAntibiotics').value;
+        const allergy=document.getElementById('targetAllergy').value;
+        const payload={pathogen, resistance_drugs:resistanceDrugs, age, weight, creatinine, sex, previous_antibiotics:previousAntibiotics, hospital_days:hospitalDays, allergy};
+        try{
+            const resp=await fetch('/api/targeted',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+            const data=await resp.json();
+            if(data.error){document.getElementById('resultTargeted').innerHTML=`<div class="result-card" style="border-left-color:red;">❌ ${data.error}</div>`;document.getElementById('copyTargetedResult').style.display='none';return;}
+            let html=`<div class="result-card"><strong>🦠 Возбудитель:</strong> ${data.pathogen}<br><strong>🧪 Клиренс креатинина:</strong> ${data.crcl} мл/мин<br><strong>⏱️ Дни в стационаре:</strong> ${data.hospital_days}<br>`;
+            if(data.previous_antibiotics) html+=`<strong>💊 Предыдущие антибиотики:</strong> ${data.previous_antibiotics}<br>`;
+            html+=`<hr><strong>🔬 Рекомендованные препараты (с учётом резистентности и функции почек):</strong><ul>`;
+            data.recommendations.forEach(rec=>{html+=`<li><strong>${rec.drug}</strong> — ${rec.dose}<br><span class="badge">${rec.note}</span></li>`;});
+            html+=`</ul>`;
+            if(data.allergy_warning) html+=`<div class="warning">⚠️ ${data.allergy_warning}</div>`;
+            html+=`</div>`;
+            document.getElementById('resultTargeted').innerHTML=html;
+            currentTargetedText=`Возбудитель: ${data.pathogen}\nКлиренс креатинина: ${data.crcl} мл/мин\nДни в стационаре: ${data.hospital_days}\nПредыдущие антибиотики: ${data.previous_antibiotics||'нет'}\n\nРекомендованные препараты:\n${data.recommendations.map(r=>`${r.drug} — ${r.dose}`).join('\n')}`;
+            document.getElementById('copyTargetedResult').style.display='inline-block';
+        }catch(e){document.getElementById('resultTargeted').innerHTML=`<div class="result-card" style="border-left-color:red;">❌ Ошибка соединения</div>`;}
+    });
+    document.getElementById('copyEmpiricResult').addEventListener('click',()=>{navigator.clipboard.writeText(currentEmpiricText).then(()=>alert("Результат скопирован"));});
+    document.getElementById('copyTargetedResult').addEventListener('click',()=>{navigator.clipboard.writeText(currentTargetedText).then(()=>alert("Результат скопирован"));});
+</script>
+</body>
+  </html>
